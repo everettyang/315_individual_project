@@ -14,12 +14,12 @@ enum Command {
 	PD, PM
 };
 
-vector<string> split_str(string str) {
+vector<string> split_str(string str, char delim) {
 	  vector<string> internal;
 	  stringstream ss(str); // Turn the string into a stream.
 	  string tok;
  
-	  while(getline(ss, tok, ' ')) {
+	  while(getline(ss, tok, delim)) {
 	    internal.push_back(tok);
 	  }
  
@@ -53,7 +53,7 @@ int main () {
 	vector<string> split_command;
 
 	while (getline(cin, command)) {
-		split_command = split_str(command);
+		split_command = split_str(command, ' ');
 		switch (commands[split_command[0]]) {
 
 			case B: { 
@@ -77,7 +77,6 @@ int main () {
 				books[key].defineAttribute(val, split_command[2].c_str());
 				break;
 			}
-
 			case M: {
 				ISBN key = strtoull(split_command[1].c_str(), NULL, 10);
 				books[key].setCost(stod(split_command[2]), split_command[3].c_str());
@@ -88,6 +87,8 @@ int main () {
 				string code = split_command[1];
 				int course_num = stoi(split_command[2]);
 				string title = split_command[3];
+				for (int i = 4; i < split_command.size(); ++i)
+					title += " " + split_command[i];
 				Course c(code, course_num, title);
 				courses[code][course_num] = c;
 				break;
@@ -106,7 +107,7 @@ int main () {
 			case GC: {
 				string code = split_command[1];
 				int course_num = stoi(split_command[2]);
-				courses[code][course_num].printAllBooks();
+				courses[code][course_num].getAllBooks(true, true);
 				break;
 			}
 
@@ -114,14 +115,100 @@ int main () {
 				string code = split_command[1];
 				int course_num = stoi(split_command[2]);
 				int section = stoi(split_command[3]);
+				cout << "SECTION " << section << " (selected):\n " << endl; 
 				courses[code][course_num].printBookForSection(section);
 				break;
 			}
 
-			case GB:{ 
+			case GB: { 
 				//print everything about a book given isbn
 				ISBN key = strtoull(split_command[1].c_str(), NULL, 10);
 				books[key].printAll();
+				break;
+			}
+			case PB: {
+				cout << "ALL BOOKS DEFINED:\n " << endl;
+				for (map<ISBN, Book>::iterator it = books.begin();
+					it != books.end(); ++it) {
+					it->second.printAll();
+					cout << endl;
+				}
+				break;
+			}
+			case PC: {
+				cout << "ALL COURSES DEFINED:\n " << endl;
+				for (map<string, map<int, Course> >::iterator it = courses.begin();
+					it != courses.end(); ++it) {
+					for (map<int, Course>::iterator it1 = it->second.begin();
+						it1 != it->second.end(); ++it1) {
+							it1->second.printAll();
+					}
+				}
+				break;
+			}
+			case PY: {
+				vector<string> split_date;
+				string date = split_command[1];
+				split_date = split_str(date, '/');
+				int month = stoi(split_date[0]);
+				int year = stoi(split_date[1]);
+
+
+				cout << "ALL BOOKS NEWER THAN " << date << ":\n " << endl;
+				for (map<ISBN, Book>::iterator it = books.begin();
+					it != books.end(); ++it) {
+
+					vector<string> book_split_date;
+					string book_date = it->second.getDate();
+					book_split_date = split_str(book_date, '/');
+					int book_month = stoi(book_split_date[0]);
+					int book_year = stoi(book_split_date[1]);
+					if (((book_month >= month) && (book_year >= year)) ||
+						(book_year > year)) {
+						it->second.printAll();
+						cout << endl;
+					}
+				}
+				break;
+			}
+			case PD: {
+				string dept_code = split_command[1];
+				cout << "ALL BOOKS USED IN THE " << dept_code << " DEPARTMENT:\n " << endl;
+				for (map<int, Course>::iterator it = courses[dept_code].begin();
+					it != courses[dept_code].end(); ++it) {
+					it->second.getAllBooks(false, true); //first arg false because dont want to print by section
+				}
+				break;
+			}
+			case PM: {
+				string dept_code = split_command[1];
+				double total_cost_max = 0;
+				double total_cost_min = 0;
+				int total_books = 0;
+				int total_required_books = 0;
+
+				for (map<int, Course>::iterator it = courses[dept_code].begin();
+					it != courses[dept_code].end(); ++it) {
+					pair<vector<Book>, vector<Book> > pair_books = it->second.getAllBooks(false, false); //get a pair (required books, optional books) for each course 
+					vector<Book> all_books = pair_books.first; //add required books first
+					all_books.insert(all_books.end(), pair_books.second.begin(), pair_books.second.end());
+
+					total_books += all_books.size();
+					total_required_books += pair_books.first.size();
+
+					for (int i = 0; i < all_books.size(); ++i) {
+						total_cost_max += all_books[i].getMaxCost();
+					}
+					for (int i = 0; i < pair_books.first.size(); ++i) {
+						total_cost_min += pair_books.first[i].getMinCost();
+					}
+				}
+				
+				cout << "AVERAGE MAXIMUM COST OF BOOKS IN " << dept_code << 
+					total_cost_max / total_books << '\n' << endl;
+				
+				cout << "AVERAGE MINIMUM COST OF BOOKS IN " << dept_code << 
+					total_cost_min / total_required_books << '\n' << endl;
 				break;
 			}
 		}

@@ -21,10 +21,14 @@ class Book {
 		void setTitle(string _title);
 		
 		string getTitle();
+		string getDate();
 
 		void setID(ISBN _id);
 		void defineAttribute(string, const char* a);
 		void setCost(double _value, const char* a);
+
+		double getMaxCost();
+		double getMinCost();
 		
 		ISBN getID();
 

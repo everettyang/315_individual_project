@@ -22,13 +22,13 @@ ISBN Book::getID() {
 }
 
 void Book::printAll() {
-	cout << "ID: " << this->id << endl;
+	cout << "ISBN: " << this->id << endl;
 	cout << "Title: " << this->title << endl;
 	cout << "Author: " << this->author << endl;
 	this->edition == 0 ?  
 		cout << "Edition: edition not defined" << endl :
 		cout << "Edition: " << this->edition << endl;
-	cout << "Date: " << this->date << endl;
+	cout << "Date Published: " << this->date << endl;
 
 	cout << "Cost for different versions: " << endl;
 	for (map<string, double>::iterator it = this->cost.begin();
@@ -65,4 +65,28 @@ void Book::defineAttribute(string _value, const char* a) {
 			this->date = _value;
 			break;
 	}
+}
+
+double Book::getMinCost() {
+	double min = numeric_limits<double>::max();
+	for (map<string, double>::iterator it = this->cost.begin(); 
+						it != this->cost.end(); ++it) {
+		if (it->second < min)
+			min = it->second;
+	}
+	return min;
+}
+
+double Book::getMaxCost() {
+	double max = 0;
+	for (map<string, double>::iterator it = this->cost.begin(); 
+						it != this->cost.end(); ++it) {
+		if (it->second > max)
+			max = it->second;
+	}
+	return max;
+}
+
+string Book::getDate() {
+	return this->date;
 }
