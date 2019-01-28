@@ -48,8 +48,8 @@ pair<vector<Book>, vector<Book> > Course::getAllBooks(bool _section_label, bool 
 void Course::printBookForSection(int _section) {
 	vector<pair<Book, string> > bookListing = sections[_section];	
 	for (int i = 0; i < bookListing.size(); ++i) {
-		bookListing[i].second == "R" ? cout << "(Required)" << endl :
-						cout << "(Optional)" << endl;
+		bookListing[i].second == "O" ?  cout << "(Optional)" << endl :
+						cout << "(Required)" << endl;
 		bookListing[i].first.printAll();
 		cout << endl;
 	}

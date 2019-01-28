@@ -62,6 +62,7 @@ void Book::defineAttribute(string _value, const char* a) {
 			this->edition = stoi(_value);
 			break;
 		case 'D':
+			
 			this->date = _value;
 			break;
 	}

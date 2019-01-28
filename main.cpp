@@ -29,9 +29,9 @@ vector<string> split_str(string str, char delim) {
 int main () {
 
 	typedef unsigned long long ISBN;
-	//stores all defined books
 	map<string, Command> commands;
-
+	/*this is necessary as we require a way
+	to map strings (user input) to commands (what the program is suppose to do */
 	commands["B"] = B; 
 	commands["D"] = D; 
 	commands["M"] = M; 
@@ -54,18 +54,24 @@ int main () {
 
 	while (getline(cin, command)) {
 		split_command = split_str(command, ' ');
+		string* last_elem = &split_command[split_command.size() - 1];
+		last_elem->erase(last_elem->size() - 1);
 		switch (commands[split_command[0]]) {
 
 			case B: { 
 				//define a book
-				ISBN id = strtoull(split_command[1].c_str(), NULL, 10);
-				string title;
-				title = split_command[2];
-				for (int i = 3; i < split_command.size(); ++i)
-					title += " " + split_command[i];
+				if (split_command[1].length() != 13)
+					cout << "Not valid ISBN" << endl;
+				else {
+					ISBN id = strtoull(split_command[1].c_str(), NULL, 10);
+					string title;
+					title = split_command[2];
+					for (int i = 3; i < split_command.size(); ++i)
+						title += " " + split_command[i];
 
-				Book b(id, title);
-				books[id] = b;
+					Book b(id, title);
+					books[id] = b;
+				}
 				break;
 			}
 			case D: {
@@ -107,6 +113,8 @@ int main () {
 			case GC: {
 				string code = split_command[1];
 				int course_num = stoi(split_command[2]);
+				cout << "BOOKS FOR " << code << " " <<  course_num <<
+						"\n------------------------------" << endl;
 				courses[code][course_num].getAllBooks(true, true);
 				break;
 			}
@@ -115,7 +123,9 @@ int main () {
 				string code = split_command[1];
 				int course_num = stoi(split_command[2]);
 				int section = stoi(split_command[3]);
-				cout << "SECTION " << section << " (selected):\n " << endl; 
+				cout << "BOOKS FOR " << code << " " << course_num << " SECTION " << section 
+						<< " (selected using GS command):\n" <<
+						"------------------------------" << endl;
 				courses[code][course_num].printBookForSection(section);
 				break;
 			}
@@ -123,20 +133,31 @@ int main () {
 			case GB: { 
 				//print everything about a book given isbn
 				ISBN key = strtoull(split_command[1].c_str(), NULL, 10);
-				books[key].printAll();
+				cout << "SELECTED BOOK (" << key << "):\n" <<
+						"------------------------------" << endl;
+				map<ISBN, Book>::iterator it = books.find(key); 
+				Book b = it->second;
+				if (it == books.end())
+					cout << "Book not found!" << endl;
+				else
+					b.printAll();
 				break;
 			}
 			case PB: {
-				cout << "ALL BOOKS DEFINED:\n " << endl;
+				cout << "ALL BOOKS DEFINED:\n" 
+					"------------------------------" << endl;
 				for (map<ISBN, Book>::iterator it = books.begin();
 					it != books.end(); ++it) {
 					it->second.printAll();
 					cout << endl;
 				}
+
+				cout << "------------------------------\n" << endl;
 				break;
 			}
 			case PC: {
-				cout << "ALL COURSES DEFINED:\n " << endl;
+				cout << "ALL COURSES DEFINED:\n" 
+					"------------------------------"<< endl;
 				for (map<string, map<int, Course> >::iterator it = courses.begin();
 					it != courses.end(); ++it) {
 					for (map<int, Course>::iterator it1 = it->second.begin();
@@ -144,6 +165,8 @@ int main () {
 							it1->second.printAll();
 					}
 				}
+
+				cout << "------------------------------\n" << endl;
 				break;
 			}
 			case PY: {
@@ -154,7 +177,8 @@ int main () {
 				int year = stoi(split_date[1]);
 
 
-				cout << "ALL BOOKS NEWER THAN " << date << ":\n " << endl;
+				cout << "ALL BOOKS NEWER THAN " << date << ":\n" <<
+					"------------------------------" << endl;
 				for (map<ISBN, Book>::iterator it = books.begin();
 					it != books.end(); ++it) {
 
@@ -169,15 +193,18 @@ int main () {
 						cout << endl;
 					}
 				}
+				cout << "------------------------------\n" << endl;
 				break;
 			}
 			case PD: {
 				string dept_code = split_command[1];
-				cout << "ALL BOOKS USED IN THE " << dept_code << " DEPARTMENT:\n " << endl;
+				cout << "ALL BOOKS USED IN " << dept_code << 
+					"\n------------------------------" << endl;
 				for (map<int, Course>::iterator it = courses[dept_code].begin();
 					it != courses[dept_code].end(); ++it) {
 					it->second.getAllBooks(false, true); //first arg false because dont want to print by section
 				}
+				cout << "------------------------------\n" << endl;
 				break;
 			}
 			case PM: {
@@ -204,10 +231,10 @@ int main () {
 					}
 				}
 				
-				cout << "AVERAGE MAXIMUM COST OF BOOKS IN " << dept_code << 
+				cout << "AVERAGE MAXIMUM COST OF BOOKS IN " << dept_code << ":" << '\n'<<
 					total_cost_max / total_books << '\n' << endl;
 				
-				cout << "AVERAGE MINIMUM COST OF BOOKS IN " << dept_code << 
+				cout << "AVERAGE MINIMUM COST OF BOOKS IN " << dept_code << ":" << '\n'<<
 					total_cost_min / total_required_books << '\n' << endl;
 				break;
 			}
