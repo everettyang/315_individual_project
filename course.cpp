@@ -11,6 +11,19 @@ void Course::printAll() {
 		<< this->course_name << "\n" << endl;
 }
 
+void Course::printBookForSection(int _section) {
+	//goes into a certain section and prints all books
+	pair<vector<Book>, vector<Book> > bookListing = sections[_section];	
+	for (int i = 0; i < bookListing.first.size(); ++i) {
+		cout << "(Required)" << endl;
+		bookListing.first[i].printAll();
+	}
+	for (int i = 0; i < bookListing.second.size(); ++i) {
+		cout << "(Optional)" << endl;
+		bookListing.second[i].printAll();
+	}
+}
+
 void Course::setCourseNumber(int _val) {
 	this->course_number = _val;
 }
@@ -21,36 +34,47 @@ void Course::setCourseCode(string _val) {
 	this->course_code = _val;
 }
 void Course::assignBook(int _section, Book _b, string _required) {
-	this->sections[_section].push_back(pair(_b, _required));
+	if (_required == "R")	
+		this->sections[_section].first.push_back(_b);
+	else if (_required == "O")
+		this->sections[_section].second.push_back(_b);
+	else {
+		cout << "Invalid requirement value" << endl;
+		return;
+	}
+
+	if (find(list_of_all_books.begin(), 
+		list_of_all_books.end(), _b) 
+		== list_of_all_books.end()) //if never seen this book before
+		list_of_all_books.push_back(_b);	
 }
-pair<vector<Book>, vector<Book> > Course::getAllBooks(bool _section_label, bool _print) {
-	vector<Book> all_optional_books; //stores books from all sections of this course
-	vector<Book> all_required_books;
-	for (map<int, vector<pair<Book, string> > >::iterator it = this->sections.begin();
+vector<pair<vector<Book>, vector<Book> > > Course::getAllBooks(bool _print) {
+	/*
+	 * this function serves two purposes:
+	 * 1. print all books for all sections
+	 * 2. return all books for this course, separated by section
+	*/
+	//loop through all sections
+	vector<pair<vector<Book>, vector<Book> > > all_books_by_section;
+	for (map<int, pair<vector<Book>, vector<Book> > >::iterator it = this->sections.begin();
 		it != this->sections.end(); ++it) {
-		if (_section_label)
+
+		vector<Book> required_books = it->second.first;
+		vector<Book> optional_books = it->second.second;
+		if (_print) {
 			cout << "SECTION " << it->first << ":\n" << endl;
-		for (int i = 0; i < it->second.size(); ++i) {
-			if (_print){
-				it->second[i].second == "R" ? cout << "(Required)" << endl :
-								cout << "(Optional)" << endl;
-				it->second[i].first.printAll();
-				cout << endl;
+			for (int i = 0; i < required_books.size(); ++i) {
+				cout << "(Required)" << endl;
+				required_books[i].printAll();
 			}
-			if (it->second[i].second == "R")
-				all_required_books.push_back(it->second[i].first);	
-			else
-				all_optional_books.push_back(it->second[i].first);	
+			for (int i = 0; i < optional_books.size(); ++i) {
+				cout << "(Optional)" << endl;
+				optional_books[i].printAll();
+			}
 		}
+		all_books_by_section.push_back(pair(required_books, optional_books));
 	}
-	return pair(all_required_books, all_optional_books);	
+	return all_books_by_section;
 }
-void Course::printBookForSection(int _section) {
-	vector<pair<Book, string> > bookListing = sections[_section];	
-	for (int i = 0; i < bookListing.size(); ++i) {
-		bookListing[i].second == "O" ?  cout << "(Optional)" << endl :
-						cout << "(Required)" << endl;
-		bookListing[i].first.printAll();
-		cout << endl;
-	}
-}
+
+vector<Book> Course::getListOfAllBooks() { return list_of_all_books; }
