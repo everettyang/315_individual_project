@@ -62,7 +62,7 @@ vector<pair<vector<Book>, vector<Book> > > Course::getAllBooks(bool _print) {
 	*/
 	//loop through all sections
 	vector<pair<vector<Book>, vector<Book> > > all_books_by_section;
-	for (map<int, pair<vector<Book>, vector<Book> > >::iterator it = this->sections.begin();
+	for (unordered_map<int, pair<vector<Book>, vector<Book> > >::iterator it = this->sections.begin();
 		it != this->sections.end(); ++it) {
 
 		vector<Book> required_books = it->second.first;

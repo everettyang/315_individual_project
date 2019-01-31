@@ -89,16 +89,19 @@ bool isDate(string _date){
 bool checkCourse(string _course_code, 
 			string _course_num, 
 			string _section) {
+	//this function checks if the course
+	//code and number given are valid
+	//by making use of above functions
 	if (!isDepartmentCode(_course_code)) {
-		cout << "Invalid course code" << endl;
+		cout << "INVALID COURSE CODE" << endl;
 		return false;
 	}
 	if (!isThreeDigitNumber(_course_num) && (_course_num != "")) {
-		cout << "Invalid course number" << endl;
+		cout << "INVALID COURSE NUMBER" << endl;
 		return false;
 	}
 	if (!isThreeDigitNumber(_section) && (_section != "")) {
-		cout << "Invalid section number" << endl;
+		cout << "INVALID SECTION NUMBER" << endl;
 		return false;
 	}
 	return true;

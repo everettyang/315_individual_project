@@ -38,6 +38,7 @@ void Controller::bFunction() {
 
 void Controller::dFunction() {
 	//define some characteristic of book
+	//if book exists
 	string string_key = split_command[1];
 	if (!isISBN(string_key))
 		cout << "Not valid ISBN (D Function)" << endl;
@@ -46,11 +47,17 @@ void Controller::dFunction() {
 	val = split_command[3];
 	for (int i = 4; i < split_command.size(); ++i)
 		val += " " + split_command[i];
-	books[key].defineAttribute(val, split_command[2].c_str());
+	try {
+		books.at(key).defineAttribute(val, split_command[2].c_str());
+	}
+	catch (const out_of_range& err) {
+		cout << "Book with ISBN: " << key << " does not exist! (D Function)\n" << endl;
+	}
 }
 
 void Controller::mFunction() {
 	//defines a cost for a certain version of a given book
+	//if the given book is valid
 	string string_key = split_command[1];
 	if (!isISBN(string_key)) {
 		cout << "Invalid ISBN! (M function)" << endl;
@@ -63,24 +70,29 @@ void Controller::mFunction() {
 		return;
 	}
 	string book_type = split_command[3];
-	books[key].setCost(stod(cost), book_type.c_str());
+	try {
+		books.at(key).setCost(stod(cost), book_type.c_str());
+	}
+	catch (const out_of_range& err) {
+		cout << "Book with ISBN: " << key << " does not exist! (M Function)" << endl;
+	}
 }
 
 void Controller::cFunction() {
 	
 	//given course info, create new
-	//course object and stores it in map
+	//course object and stores it in unordered_map
 	//with all other defined courses
 	string course_code = split_command[1];
 	int course_num = stoi(split_command[2]);
 	string course_title = split_command[3];
 
-	if (checkCourse(course_code, split_command[2])) {
+	if (checkCourse(course_code, split_command[2])) { //checks validity of input
 
 		for (int i = 4; i < split_command.size(); ++i)
 			course_title += " " + split_command[i];
 		Course c(course_code, course_num, course_title);
-		courses[course_code][course_num] = c; //add to map of all courses
+		courses[course_code][course_num] = c; //add to unordered_map of all courses
 	}
 }
 
@@ -157,7 +169,7 @@ void Controller::gbFunction() {
 	ISBN key = strtoull(string_key.c_str(), NULL, 10);
 	cout << "SELECTED BOOK (" << key << "):\n" <<
 			"------------------------------" << endl;
-	map<ISBN, Book>::iterator it = books.find(key); 
+	unordered_map<ISBN, Book>::iterator it = books.find(key); 
 	if (it == books.end())
 		cout << "Book not found!\n" << endl;
 	else {
@@ -170,7 +182,7 @@ void Controller::pbFunction() {
 	//list all books defined
 	cout << "ALL BOOKS DEFINED:\n" 
 		"------------------------------" << endl;
-	for (map<ISBN, Book>::iterator it = books.begin();
+	for (unordered_map<ISBN, Book>::iterator it = books.begin();
 		it != books.end(); ++it) {
 		it->second.printAll();
 	}
@@ -182,9 +194,9 @@ void Controller::pcFunction() {
 	//list all courses defined
 	cout << "ALL COURSES DEFINED:\n" 
 		"------------------------------"<< endl;
-	for (map<string, map<int, Course> >::iterator it = courses.begin();
+	for (unordered_map<string, unordered_map<int, Course> >::iterator it = courses.begin();
 		it != courses.end(); ++it) {
-		for (map<int, Course>::iterator it1 = it->second.begin();
+		for (unordered_map<int, Course>::iterator it1 = it->second.begin();
 			it1 != it->second.end(); ++it1) {
 				it1->second.printAll();
 		}
@@ -209,7 +221,7 @@ void Controller::pyFunction() {
 
 	cout << "ALL BOOKS NEWER THAN " << date << ":\n" <<
 		"------------------------------" << endl;
-	for (map<ISBN, Book>::iterator it = books.begin();
+	for (unordered_map<ISBN, Book>::iterator it = books.begin();
 		it != books.end(); ++it) {
 
 		vector<string> book_split_date;
@@ -242,7 +254,7 @@ void Controller::pdFunction() {
 	}
 	cout << "ALL BOOKS USED IN " << dept_code << 
 		"\n------------------------------" << endl;
-	for (map<int, Course>::iterator it = courses[dept_code].begin();
+	for (unordered_map<int, Course>::iterator it = courses[dept_code].begin();
 		it != courses[dept_code].end(); ++it) {
 		vector<Book> all_books = it->second.getListOfAllBooks(); //first arg false because dont 
 									  //want to print by section TODO: define a new function
@@ -274,7 +286,7 @@ void Controller::pmFunction() {
 	int total_sections = 0; //total section with books (required and optional)
 	int total_required_sections = 0; //total sections that require books
 
-	for (map<int, Course>::iterator it = courses[dept_code].begin();
+	for (unordered_map<int, Course>::iterator it = courses[dept_code].begin();
 		it != courses[dept_code].end(); ++it) {
 		vector<pair<vector<Book>, vector<Book> > > books_for_all_sections = it->second.getAllBooks(false); //get a vector of pairs that 
 															//contain a pair (required, optional) for that section. Each element is a section
@@ -282,7 +294,6 @@ void Controller::pmFunction() {
 								//that a section was assigned at least one book
 								//(either required or optional vector is non-zero
 
-		cout << "Total Sections: " << total_sections << endl;
 		for (int i = 0; i < books_for_all_sections.size(); ++i) {
 			vector<Book> required_books = books_for_all_sections[i].first;
 			vector<Book> optional_books = books_for_all_sections[i].second;
@@ -315,14 +326,20 @@ void Controller::pmFunction() {
 		}
 	}
 	
-	//if there is no book with defined cost
-	cout << "Total Required sections: " << total_required_sections << endl;
-	if (total_sections > 0 && total_cost_max != COST_UNDEFINED) { //make sure we have books to compute with
-		cout << "Total Max Cost " << total_cost_max << endl;
-		cout << "AVERAGE MAXIMUM COST OF BOOKS PER SECTION IN " << dept_code << ":" << '\n'<<
+	//this block does the division from the results above and prints the result
+	//it also checks for any possible errors (no cost or no books)
+	cout << "COMPUTING AVERAGES (PM FUNCTION):\n" << endl;
+	if (total_sections > 0 && total_cost_max != COST_UNDEFINED) { //make sure we have valid books to compute with
+		cout << "Total Maximum Cost: " << total_cost_max << endl;
+		cout << "Total Sections: " << total_sections << endl;
+		cout << "AVERAGE MAXIMUM COST OF BOOKS PER SECTION IN " << dept_code << ":" <<
+			"\n(Total Maximum Cost / Total Sections)\n" <<
 			total_cost_max / total_sections << '\n' << endl;
-		if (total_required_sections > 0 && total_cost_min != COST_UNDEFINED) {
-			cout << "AVERAGE MINIMUM COST OF BOOKS PER SECTION IN " << dept_code << ":" << '\n'<<
+		if (total_required_sections > 0 && total_cost_min != COST_UNDEFINED) { //now check if minimum is computable
+			cout << "Total Minimum Cost: " << total_cost_min << endl;
+			cout << "Total Sections Requiring Books: " << total_required_sections << endl;
+			cout << "AVERAGE MINIMUM COST OF BOOKS PER SECTION IN " << dept_code << ":" << 
+				"\n(Total Minimum Cost / Total Sections Requiring Books)\n" << 
 				total_cost_min / total_required_sections << '\n' << endl;
 		}
 		else
@@ -345,9 +362,10 @@ void Controller::run() {
 	string command;
 	while (getline(cin, command)) {
 		parseUserInput(command);
+		if (split_command.size() == 0) { continue; }
 		string input_code = split_command[0];
 		if (function_code.find(input_code) == function_code.end()) {
-			cout << input_code << " is not a valid command" << endl;	
+			cout << input_code << " is not a valid command\n" << endl;	
 			continue;
 		}
 		switch (function_code[split_command[0]]) {

@@ -13,7 +13,7 @@ class Course {
 	int course_number; //ex: 313
 	vector<Book> list_of_all_books; //contains all books used in this course (no duplicates)
 					//(this is only used so that PD command does not contain duplicates)
-	map<int, pair<vector<Book>, vector<Book> > > sections; //maps a section number to a section, 
+	unordered_map<int, pair<vector<Book>, vector<Book> > > sections; //unordered_maps a section number to a section, 
 							//which is a pair of Books (required, optional)
 	public:
 		//constructors
@@ -27,7 +27,7 @@ class Course {
 		void assignBook(int _section, Book _b, string _required); //adds given book to given section
 
 		//getters
-		map<int, vector<pair<Book, string> > > getSections();
+		unordered_map<int, vector<pair<Book, string> > > getSections();
 		vector<pair<vector<Book>, vector<Book> > > getAllBooks(bool _print); //retrieves all books for course object
 		vector<Book> getListOfAllBooks();
 

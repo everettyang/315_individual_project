@@ -5,7 +5,7 @@
 #include <string> 
 #include <vector> 
 #include <iostream> 
-#include <map> 
+#include <unordered_map> 
 #include <algorithm>
 #include "utilities.h" //global function(s)
 
@@ -25,7 +25,7 @@ class Book {
 	string title;
 	string author;
 	string date;
-	map<string, double> cost;
+	unordered_map<string, double> cost;
 	unsigned int edition;
 	
 	public:

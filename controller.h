@@ -17,11 +17,11 @@ class Controller {
 	};
 
 	//Validity_checker vc;
-	map<ISBN, Book> books; //all books defined
-	map<string, map<int, Course> > courses; //all courses defined
+	unordered_map<ISBN, Book> books; //all books defined
+	unordered_map<string, unordered_map<int, Course> > courses; //all courses defined
 
-	map<string, Function_code> function_code; //given the first token, 
-						 //map to function code for later use
+	unordered_map<string, Function_code> function_code; //given the first token, 
+						 //unordered_map to function code for later use
 	vector<string> split_command; //stores each token of the command 
 					//as separate elements in vector
 
