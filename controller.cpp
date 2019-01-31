@@ -88,7 +88,6 @@ void Controller::aFunction() {
 	//assigns a course to a book
 
 	//course info
-
 	string course_code = split_command[2];
 	int course_num = stoi(split_command[3]);
 	int section = stoi(split_command[4]);
@@ -103,7 +102,12 @@ void Controller::aFunction() {
 		ISBN key = strtoull(string_key.c_str(), NULL, 10);
 		string required = split_command[5];
 
-		courses[course_code][course_num].assignBook(section, books[key], required);
+		try {
+			courses.at(course_code).at(course_num).assignBook(section, books.at(key), required);
+		}
+		catch (const out_of_range& err) {
+			cout << "Either ISBN or Course is not valid! (A function)\n" << endl;
+		}
 	}
 }
 
@@ -114,7 +118,12 @@ void Controller::gcFunction() {
 		int course_num = stoi(split_command[2]);
 		cout << "BOOKS FOR " << course_code << " " <<  course_num <<
 				"\n------------------------------" << endl;
-		courses[course_code][course_num].getAllBooks(true); //prints the books
+		try {
+			courses.at(course_code).at(course_num).getAllBooks(true); //prints the books
+		}
+		catch (const out_of_range& err) {
+			cout << "Course is not defined! (GC function)\n" << endl;
+		}
 		cout << "\n------------------------------" << endl;
 	}
 }
@@ -128,7 +137,12 @@ void Controller::gsFunction() {
 		cout << "BOOKS FOR " << course_code << " " << course_num << " SECTION " << section 
 				<< " \n(selected using GS command):\n" <<
 				"------------------------------" << endl;
-		courses[course_code][course_num].printBookForSection(section); //prints the books for a section
+		try {
+			courses.at(course_code).at(course_num).printBookForSection(section); //prints the books for a section
+		}
+		catch (const out_of_range& err) {
+			cout << "Course is not defined! (GC function)\n" << endl;
+		}
 		cout << "\n------------------------------" << endl;
 	}
 }
@@ -200,6 +214,11 @@ void Controller::pyFunction() {
 
 		vector<string> book_split_date;
 		string book_date = it->second.getDate();
+		if (book_date == "") {
+			cout << "No date defined for " << it->second.getTitle() << 
+				'\n' << endl;
+			continue;
+		}
 		book_split_date = split_str(book_date, '/');
 		int book_month = stoi(book_split_date[0]);
 		int book_year = stoi(book_split_date[1]);
@@ -217,6 +236,10 @@ void Controller::pdFunction() {
 	string dept_code = split_command[1];
 	if (!checkCourse(dept_code)) return;
 	//vector<Book> books_in_department = books;
+	if (courses.find(dept_code) == courses.end()) {
+		cout << dept_code << " department does not exist (PD function)\n" << endl;
+		return;
+	}
 	cout << "ALL BOOKS USED IN " << dept_code << 
 		"\n------------------------------" << endl;
 	for (map<int, Course>::iterator it = courses[dept_code].begin();
@@ -242,6 +265,10 @@ void Controller::pmFunction() {
 	 * by the number of sections that have books assigned. */
 	string dept_code = split_command[1];
 	if (!checkCourse(dept_code)) return;
+	if (courses.find(dept_code) == courses.end()) {
+		cout << dept_code << " department does not exist (PM function)\n" << endl;
+		return;
+	}
 	double total_cost_max = COST_UNDEFINED;
 	double total_cost_min = COST_UNDEFINED;
 	int total_sections = 0; //total section with books (required and optional)
@@ -255,9 +282,10 @@ void Controller::pmFunction() {
 								//that a section was assigned at least one book
 								//(either required or optional vector is non-zero
 
+		cout << "Total Sections: " << total_sections << endl;
 		for (int i = 0; i < books_for_all_sections.size(); ++i) {
 			vector<Book> required_books = books_for_all_sections[i].first;
-			vector<Book> optional_books = books_for_all_sections[i].first;
+			vector<Book> optional_books = books_for_all_sections[i].second;
 			vector<Book> all_books = required_books;
 			all_books.insert(all_books.end(), optional_books.begin(), optional_books.end());
 
@@ -288,7 +316,9 @@ void Controller::pmFunction() {
 	}
 	
 	//if there is no book with defined cost
+	cout << "Total Required sections: " << total_required_sections << endl;
 	if (total_sections > 0 && total_cost_max != COST_UNDEFINED) { //make sure we have books to compute with
+		cout << "Total Max Cost " << total_cost_max << endl;
 		cout << "AVERAGE MAXIMUM COST OF BOOKS PER SECTION IN " << dept_code << ":" << '\n'<<
 			total_cost_max / total_sections << '\n' << endl;
 		if (total_required_sections > 0 && total_cost_min != COST_UNDEFINED) {

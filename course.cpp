@@ -13,14 +13,20 @@ void Course::printAll() {
 
 void Course::printBookForSection(int _section) {
 	//goes into a certain section and prints all books
-	pair<vector<Book>, vector<Book> > bookListing = sections[_section];	
-	for (int i = 0; i < bookListing.first.size(); ++i) {
-		cout << "(Required)" << endl;
-		bookListing.first[i].printAll();
+	try {
+		pair<vector<Book>, vector<Book> > bookListing = sections.at(_section);	
+		for (int i = 0; i < bookListing.first.size(); ++i) {
+			cout << "(Required)" << endl;
+			bookListing.first[i].printAll();
+		}
+		for (int i = 0; i < bookListing.second.size(); ++i) {
+			cout << "(Optional)" << endl;
+			bookListing.second[i].printAll();
+		}
 	}
-	for (int i = 0; i < bookListing.second.size(); ++i) {
-		cout << "(Optional)" << endl;
-		bookListing.second[i].printAll();
+	catch (const out_of_range& err) {
+		cout << "Section is not defined! (Printing Books for a section)\n" << endl;
+		return;
 	}
 }
 

@@ -34,4 +34,4 @@ main: main.cpp
 	@$(CC) $(FLAGS) main.cpp 
 clean:
 	@echo "Cleaning files..."
-	-@rm *.o game 2> /dev/null
+	-@rm *.o textbook_organizer 2> /dev/null

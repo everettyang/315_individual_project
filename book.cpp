@@ -32,7 +32,7 @@ void Book::printAll() {
 	cout << "Title: " << this->title << endl;
 	cout << "Author: " << this->author << endl;
 	this->edition == 0 ?  
-		cout << "Edition: edition not defined" << endl :
+		cout << "" << endl :
 		cout << "Edition: " << this->edition << endl;
 	cout << "Date Published: " << this->date << endl;
 
